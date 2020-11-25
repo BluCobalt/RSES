@@ -9,36 +9,35 @@ import java.lang.reflect.Method;
 public class ReallySimpleEventSystem
 {
     /**
-     *
      * @param rootPackage the base package
      */
     public ReallySimpleEventSystem(String rootPackage)
     {
         r = new Reflections(rootPackage);
     }
-
     /**
      * runs all the given interface's methods in all classes annotated with the given annotation
+     *
      * @param annotation the annotation that the classes that handle the event are annotated with.
-     * @param iface the interface that supplies the event
+     * @param iface      the interface that supplies the event
      */
     public void runAnnotated(Class<? extends Annotation> annotation, Class<?> iface)
     {
-        for (Class<?> child: r.getTypesAnnotatedWith(annotation))
+        if (!iface.isInterface()) throw new IllegalArgumentException("An interface was expected, but not supplied.");
+        Class<?>[] annotatedClasses = r.getTypesAnnotatedWith(annotation).toArray(new Class[0]);
+        Method[] interfaceMethods = iface.getMethods();
+        for (Method interfaceMethod : interfaceMethods)
         {
-            Method[] parentMethods = iface.getMethods();
-            for (Method parentMethod: parentMethods)
+            for (Class<?> annotatedClass : annotatedClasses)
             {
                 try
                 {
-                     Method childMethod = child.getMethod(parentMethod.getName());
-                     childMethod.invoke(child);
-                } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException e)
+                    Method method = annotatedClass.getMethod(interfaceMethod.getName());
+                    method.invoke(annotatedClass.newInstance());
+                } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | InstantiationException e)
                 {
                     e.printStackTrace();
-                    // TODO: better error handling
                 }
-
             }
         }
     }
