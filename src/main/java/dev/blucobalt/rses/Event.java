@@ -1,32 +1,112 @@
 package dev.blucobalt.rses;
 
+import dev.blucobalt.rses.annotations.EventSubscriber;
+import org.reflections.Reflections;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Set;
 
 public class Event
 {
-    private String rootPackage;
-    private Method[] eventMethods;
+    private final Class<?> eventInterface;
+    private final Reflections reflections;
+    private final Class<? extends Annotation> eventAnnotation;
 
     public void pushEvent()
     {
-
+        this.run();
     }
-    protected void run(Class<?> aClass)
+
+    public void pushEvent(Object obj)
     {
-        for (Method method: eventMethods)
+        this.run(obj);
+    }
+
+    protected void run()
+    {
+        for (Class<?> annotatedClass : this.getAnnotatedClasses())
         {
-            try
+            if (eventInterface.isAssignableFrom(annotatedClass))
             {
-                method.invoke(aClass.newInstance());
-            } catch (IllegalAccessException | InvocationTargetException | InstantiationException e)
-            {
-                e.printStackTrace();
+                for (Method method : this.getIFaceMethods())
+                {
+                    try
+                    {
+                        Method methodToCall = annotatedClass.getMethod(method.getName());
+                        try
+                        {
+                            methodToCall.invoke(annotatedClass.newInstance());
+                        } catch (IllegalAccessException | InvocationTargetException | InstantiationException e)
+                        {
+                            e.printStackTrace();
+                        }
+                    } catch (NoSuchMethodException e)
+                    {
+                        e.printStackTrace();
+                    }
+                }
             }
         }
     }
-    public Event(Class<?> iface, EventSystem eventSystem) {}
-    public Event(Class<?> iface, String basePackage) {}
-    public Event(Class<?> iface, Class<? extends Annotation> annotation) {}
+
+    protected void run(Object obj)
+    {
+        for (Class<?> annotatedClass : this.getAnnotatedClasses())
+        {
+            if (eventInterface.isAssignableFrom(annotatedClass))
+            {
+                for (Method method : this.getIFaceMethods())
+                {
+                    // method.getParameters()
+                    try
+                    {
+                        Method methodToCall = annotatedClass.getMethod(method.getName(), );
+                        try
+                        {
+                            methodToCall.invoke(annotatedClass.newInstance(), obj);
+                        } catch (IllegalAccessException | InvocationTargetException | InstantiationException e)
+                        {
+                            e.printStackTrace();
+                        }
+                    } catch (NoSuchMethodException e)
+                    {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
+    }
+
+    private Method[] getIFaceMethods()
+    {
+        return this.eventInterface.getMethods();
+    }
+
+    private Set<Class<?>> getAnnotatedClasses()
+    {
+        return reflections.getTypesAnnotatedWith(this.eventAnnotation);
+    }
+
+    public Event(Class<?> iface, EventSubSystem ess)
+    {
+        this.eventInterface = iface;
+        this.eventAnnotation = ess.eventAnnotation;
+        this.reflections = new Reflections(ess.basePackage);
+    }
+
+    public Event(Class<?> iface, Class<? extends Annotation> annotation, String basePackage)
+    {
+        this.eventInterface = iface;
+        this.eventAnnotation = annotation;
+        this.reflections = new Reflections(basePackage);
+    }
+
+    public Event(Class<?> iface, String basePackage)
+    {
+        this.eventInterface = iface;
+        this.eventAnnotation = EventSubscriber.class;
+        this.reflections = new Reflections(basePackage);
+    }
 }
