@@ -14,7 +14,6 @@ public class EventSubSystem
 {
     protected String packagePrefix;
     protected Class<? extends Annotation> eventAnnotation = EventSubscriber.class;
-    protected Set<Event> childEvents;
 
     /**
      * sets a global package prefix, using the default annotation for event-handling classes.

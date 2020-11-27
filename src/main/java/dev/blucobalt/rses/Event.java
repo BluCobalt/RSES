@@ -126,7 +126,6 @@ public class Event
         this.eventInterface = iface;
         this.eventAnnotation = ess.eventAnnotation;
         this.reflections = new Reflections(ess.packagePrefix);
-        ess.childEvents.add(this);
     }
 
     /**
