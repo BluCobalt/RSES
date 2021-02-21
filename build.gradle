@@ -1,0 +1,48 @@
+plugins {
+    id 'java'
+    id 'maven-publish'
+}
+
+repositories {
+    mavenLocal()
+    maven {
+        url = uri('https://repo.maven.apache.org/maven2/')
+    }
+}
+
+dependencies {
+    implementation 'org.reflections:reflections:0.9.11'
+}
+
+group = 'dev.blucobalt.rses'
+version = '0.2.5'
+description = 'RSES'
+java.sourceCompatibility = JavaVersion.VERSION_1_8
+
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        if (System.getenv("MAVEN_PUBLISH_TOKEN") != null)
+        {
+            maven {
+                url = "https://maven.blucobalt.dev/"
+                credentials {
+                    username = ""
+                    password = System.getenv("MAVEN_PUBLISH_TOKEN")
+                }
+                authentication {
+                    basic(BasicAuthentication)
+                }
+            }
+        }
+    }
+}
